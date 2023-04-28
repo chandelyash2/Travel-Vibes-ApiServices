@@ -1,13 +1,8 @@
-import { GraphQLObjectType, GraphQLSchema, GraphQLString } from 'graphql'
+import { GraphQLObjectType, GraphQLSchema } from 'graphql'
+import { userMutation, userPermission, userQuery } from './gateway/users/schema'
+import { shield } from 'graphql-shield'
+import { applyMiddleware } from 'graphql-middleware'
 
-const userQuery = {
-  userInfo: {
-    type: GraphQLString,
-    resolve: () => {
-      return 'Hey Query is working'
-    },
-  },
-}
 const query = new GraphQLObjectType({
   name: 'Query',
   fields: {
@@ -15,6 +10,23 @@ const query = new GraphQLObjectType({
   },
 })
 
-export const schema = new GraphQLSchema({
-  query,
+const mutation = new GraphQLObjectType({
+  name: 'Mutation',
+  fields: {
+    ...userMutation,
+  },
 })
+const schema = new GraphQLSchema({
+  query,
+  mutation,
+})
+export const permissions = shield({
+  Query: {
+    ...userPermission.Query,
+  },
+  Mutation: {
+    ...userPermission.Mutation,
+  },
+})
+
+export default applyMiddleware(schema, permissions)
